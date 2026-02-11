@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💌 A Special Message For You 💌</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Quicksand', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Floating Hearts Container */
+        .hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .hearts-container.show {
+            opacity: 1;
+        }
+
+        .floating-heart {
+            position: absolute;
+            animation: float-up linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Envelope Styles */
+        .envelope-container {
+            position: relative;
+            z-index: 10;
+            perspective: 1000px;
+        }
+
+        .envelope {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            background: linear-gradient(145deg, #f5e6d3, #e8d4c4);
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .envelope:hover {
+            transform: scale(1.02);
+        }
+
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.03) 10px,
+                rgba(255,255,255,0.03) 20px
+            );
+            border-radius: 10px;
+        }
+
+        /* Envelope flap */
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(145deg, #ffe4e1, #ffd1dc);
+            transform-origin: top center;
+            transition: transform 0.8s ease;
+            z-index: 5;
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
+        }
+
+        .envelope.opened .envelope-flap {
+            transform: rotateX(180deg);
+        }
+
+        /* Heart seal */
+        .seal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 54px;
+            z-index: 6;
+            transition: opacity 0.3s ease;
+        }
+
+        .envelope.opened .seal {
+            opacity: 0;
+        }
+
+        .seal-heart {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            clip-path: path('M30 50 C10 30, 0 10, 30 5 C60 10, 50 30, 30 50');
+            animation: pulse 1.5s ease infinite;
+            box-shadow: 0 5px 20px rgba(238, 90, 90, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Click instruction */
+        .click-me {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #c44569;
+            font-size: 1rem;
+            font-weight: 600;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        /* Letter inside envelope */
+        .letter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 180px;
+            background: white;
+            border-radius: 8px;
+            z-index: 2;
+            transition: transform 1s ease 0.5s;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .envelope.opened .letter {
+            transform: translateX(-50%) translateY(-180px);
+        }
+
+        /* Message Container */
+        .message-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .message-container.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .message-card {
+            background: white;
+            padding: 60px 80px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.2);
+            transform: scale(0.5);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+            position: relative;
+            overflow: visible;
+        }
+
+        .message-container.show .message-card {
+            transform: scale(1);
+        }
+
+        .message-card::before {
+            content: '💕';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+        }
+
+        .message-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: #e84a5f;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(232, 74, 95, 0.2);
+        }
+
+        .message-text {
+            font-size: 1.5rem;
+            color: #555;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            box-shadow: 0 10px 30px rgba(238, 90, 90, 0.4);
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(238, 90, 90, 0.5);
+        }
+
+        .btn-no {
+            background: #f0f0f0;
+            color: #888;
+            position: relative;
+        }
+
+        .btn-no:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* Celebration */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .celebration.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .celebration-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 4rem;
+            color: #e84a5f;
+            text-align: center;
+            animation: celebrate 0.5s ease infinite alternate;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1) rotate(-2deg); }
+            100% { transform: scale(1.05) rotate(2deg); }
+        }
+
+        .celebration-hearts {
+            position: absolute;
+            font-size: 3rem;
+            animation: fall 3s linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Decorative elements */
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffeb3b;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: sparkle 1.5s ease infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.5); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .message-title {
+                font-size: 2.5rem;
+            }
+            .message-text {
+                font-size: 1.2rem;
+            }
+            .message-card {
+                padding: 40px 30px;
+            }
+            .btn {
+                padding: 12px 35px;
+                font-size: 1rem;
+            }
+            .celebration-text {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Hearts -->
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <!-- Envelope -->
+    <div class="envelope-container" id="envelopeContainer">
+        <div class="envelope" id="envelope">
+            <div class="envelope-flap"></div>
+            <div class="seal">
+                <div class="seal-heart"></div>
+            </div>
+            <div class="letter"></div>
+        </div>
+        <p class="click-me">✨ Click to open ✨</p>
+    </div>
+
+    <!-- Message -->
+    <div class="message-container" id="messageContainer">
+        <div class="message-card">
+            <h1 class="message-title">Will You Be My Valentine?</h1>
+            <p class="message-text">Every moment with you feels like a dream come true. 💝<br>You make my heart skip a beat!</p>
+            <div class="buttons">
+                <button class="btn btn-yes" id="yesBtn">Yes! 💕</button>
+                <button class="btn btn-no" id="noBtn">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration -->
+    <div class="celebration" id="celebration">
+        <div class="celebration-text">
+            Yay! 🎉💕<br>
+            You made me the happiest person!<br>
+            💝 I love you! 💝
+        </div>
+    </div>
+
+    <script>
+        // Create floating hearts
+        function createFloatingHearts() {
+            const container = document.getElementById('heartsContainer');
+            const heartEmojis = ['💕', '💗', '💖', '💝', '❤️', '💘', '💓', '💞'];
+            
+            for (let i = 0; i < 30; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.fontSize = (Math.random() * 30 + 20) + 'px';
+                heart.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                heart.style.animationDelay = (Math.random() * 10) + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // Create celebration hearts
+        function createCelebrationHearts() {
+            const celebration = document.getElementById('celebration');
+            const hearts = ['💕', '💗', '💖', '💝', '❤️', '💘', '🎉', '✨', '🌟'];
+            
+            for (let i = 0; i < 50; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'celebration-hearts';
+                heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                heart.style.animationDelay = (Math.random() * 3) + 's';
+                celebration.appendChild(heart);
+            }
+        }
+
+        // Envelope click handler
+        const envelope = document.getElementById('envelope');
+        const envelopeContainer = document.getElementById('envelopeContainer');
+        const messageContainer = document.getElementById('messageContainer');
+        const heartsContainer = document.getElementById('heartsContainer');
+
+        envelope.addEventListener('click', function() {
+            envelope.classList.add('opened');
+            
+            // Show floating hearts
+            setTimeout(() => {
+                heartsContainer.classList.add('show');
+            }, 500);
+            
+            // Hide envelope and show message
+            setTimeout(() => {
+                envelopeContainer.style.opacity = '0';
+                envelopeContainer.style.pointerEvents = 'none';
+                messageContainer.classList.add('show');
+            }, 1500);
+        });
+
+        // Yes button handler
+        document.getElementById('yesBtn').addEventListener('click', function() {
+            messageContainer.classList.remove('show');
+            document.getElementById('celebration').classList.add('show');
+            createCelebrationHearts();
+        });
+
+        // No button - moves away
+        const noBtn = document.getElementById('noBtn');
+        let noClickCount = 0;
+
+        noBtn.addEventListener('mouseover', function() {
+            if (noClickCount < 5) {
+                const maxX = window.innerWidth - noBtn.offsetWidth - 100;
+                const maxY = window.innerHeight - noBtn.offsetHeight - 100;
+                const newX = Math.random() * maxX;
+                const newY = Math.random() * maxY;
+                
+                noBtn.style.position = 'fixed';
+                noBtn.style.left = newX + 'px';
+                noBtn.style.top = newY + 'px';
+                noBtn.style.zIndex = '1000';
+                noClickCount++;
+
+                // Change button text based on attempts
+                const texts = ['Are you sure?', 'Think again!', 'Pretty please?', 'One more chance?', 'Last try!'];
+                if (noClickCount <= texts.length) {
+                    noBtn.textContent = texts[noClickCount - 1];
+                }
+            }
+        });
+
+        noBtn.addEventListener('click', function() {
+            // If they manage to click, convert it to yes!
+            noBtn.textContent = 'Okay, YES! 💕';
+            noBtn.classList.add('btn-yes');
+            noBtn.classList.remove('btn-no');
+            setTimeout(() => {
+                messageContainer.classList.remove('show');
+                document.getElementById('celebration').classList.add('show');
+                createCelebrationHearts();
+            }, 500);
+        });
+
+        // Initialize floating hearts
+        createFloatingHearts();
+
+        // Add sparkles to the page
+        function addSparkles() {
+            const messageCard = document.querySelector('.message-card');
+            for (let i = 0; i < 10; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = (Math.random() * 100) + '%';
+                sparkle.style.top = (Math.random() * 100) + '%';
+                sparkle.style.animationDelay = (Math.random() * 1.5) + 's';
+                messageCard.appendChild(sparkle);
+            }
+        }
+        addSparkles();
+    </script>
+</body>
+</html>
